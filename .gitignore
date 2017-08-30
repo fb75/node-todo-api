@@ -4,3 +4,4 @@ node_modules
 /playground/my-mongo-db-find.js
 /playground/mymongodb-delete.js
 /playground/mymongodb-update.js
+/server/myserver.js
