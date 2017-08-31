@@ -12,8 +12,6 @@ var app = express();
 // using middleware to send Json to Express application
 app.use(bodyParser.json());
 
-
-
 // Configuring Routes
 
 app.post('/todos', (req, res) => {
@@ -27,6 +25,15 @@ app.post('/todos', (req, res) => {
   }, (err) => {
     res.status(400).send(err);
   });
+});
+
+// Returning all todos from db
+app.get('/todos', (req, res) => {
+  Todo.find().then((todos) => {
+    res.send({todos});
+  }, (e) => {
+    res.status(400).send(e);
+  })
 });
 
 app.listen(3000, () => {
