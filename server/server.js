@@ -1,7 +1,8 @@
-var express = require('express');
+const _ = require ('lodash');
+const express = require('express');
 // takes Json and converts to JavaScript object attaching to req ObjectID
-var bodyParser = require('body-parser');
-var {ObjectID} = require('mongodb');
+const bodyParser = require('body-parser');
+const {ObjectID} = require('mongodb');
 
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
@@ -77,7 +78,39 @@ app.delete('/todos/:id', (req, res) => {
   }).catch((e) => {
     res.status(400).send();
   });
-})
+});
+
+// Route for updating Todo items
+// installing lodash first: npm i --save lodash
+app.patch('/todos/:id', (req, res) => {
+  // get the id
+  var id = req.params.id;
+  // getting the req object with lodash .pick() method: takes an aboject and pulls off properties (if exist) from mongoose model
+  var body = _.pick(req.body, ['text', 'completed']);
+
+    if (!ObjectID.isValid(id)) {
+      return res.status(404).send();
+    }
+    // checking if body.completed is a boolean and exists
+    if (_.isBoolean(body.completed) && body.completed) {
+      // updating mongoose model (todo.js) inserting initial time on item
+      body.completedAt = new Date().getTime();
+    } else {
+      body.completed = false;
+      body.completedAt = null;
+    }
+
+  // updating the db
+  Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+    if (!todo) {
+      return res.status(404).send();
+    }
+
+    res.send({todo});
+  }).catch((e) => {
+    res.status(400).send();
+  });  
+});
 
 app.listen(port, () => {
   console.log(`Started up at port ${port}`);  
