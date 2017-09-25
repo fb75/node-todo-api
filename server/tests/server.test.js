@@ -101,6 +101,46 @@ describe('POST /todos', () => {
      .expect(404)
      .end(done);
    });
-
-
 });
+
+// Testing deleted item from collection
+describe('DELETE /todos/:id', () => {
+  it('should remove a todo', (done) => {
+    var hexId = todos[1]._id.toHexString();
+
+    request(app)
+    .delete(`/todos/${hexId}`)
+    .expect(200)
+    // if status 200 expecting response object id to be the one selected
+    .expect((res) => {
+      expect(res.body.todo._id).toBe(hexId);
+    })
+    .end((err, res) => {
+      if (err) {
+        // if error occurs Mocha throws back
+        return done(err);
+      }
+      // query db using findById on hexId expecting nothing back
+      Todo.findById(hexId).then((todo) => {
+        expect(todo).toNotExist();
+        done();
+      }).catch((e) => done(e));
+
+    });
+  });
+
+  it('should return 404 if todo not found', (done) => {
+    var Id = new ObjectID().toHexString();
+      request(app)
+        .delete(`/todos/${Id}`)
+        .expect(404)
+        .end(done);
+        });
+  });
+  it('should return 404 if ObjectID is invalid', (done) => {
+    request(app)
+    .delete('/todos/123abc')
+    .expect(404)
+    .end(done);
+  });
+

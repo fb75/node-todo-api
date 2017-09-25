@@ -40,7 +40,7 @@ app.get('/todos', (req, res) => {
 // GET /todos/12345678
 // :id creates a variabile inside req object
 app.get('/todos/:id', (req, res) => {
-  // using somthing off the req
+  // using something off the req
   var id = req.params.id;
 
   if (!ObjectID.isValid(id)) {
@@ -68,13 +68,12 @@ app.delete('/todos/:id', (req, res) => {
     return res.status(404).send();    
   }
 
-
   Todo.findByIdAndRemove(id).then((todo) => {
     if (!todo) {
       return res.status(404).send();
     }
-
-    res.send(todo);
+    // returning the deleted object
+    res.send({todo});
   }).catch((e) => {
     res.status(400).send();
   });
