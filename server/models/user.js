@@ -36,8 +36,9 @@ var UserSchema = new mongoose.Schema({
 // converting to Json mongoose Schema
 UserSchema.methods.toJSON = function() {
 	var user = this;
+	// converting mongoose var into JavaScript regular object
 	var userObject = user.toObject();
-
+	// getting only _id and email properties 
 	return _.pick(userObject, ['_id', 'email']);
 };
 
@@ -50,6 +51,28 @@ UserSchema.methods.generateAuthToken = function() {
 	user.tokens.push({ access, token });
 	return user.save().then(() => {
 		return token;	
+	});
+};
+
+// creating custom 
+UserSchema.statics.findByToken = function(token) {
+	var User = this;
+	var decoded;
+
+	try {
+		decoded = jwt.verify(token, 'abc123');
+	} catch(e) {
+	// 	return new Promise((resolve, reject) => {
+	// 		reject();
+	// 	});
+	// }
+	return Promise.reject();
+	}
+
+	return User.findOne({
+		_id: decoded._id,
+		'tokens.token': token,
+		'tokens.access': 'auth'
 	});
 };
 

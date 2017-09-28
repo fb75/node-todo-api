@@ -1,4 +1,5 @@
 require('./config/config.js');
+
 const _ = require ('lodash');
 const express = require('express');
 // takes Json and converts to JavaScript object attaching to req ObjectID
@@ -8,6 +9,7 @@ const {ObjectID} = require('mongodb');
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
+var {authenticate} = require('./middleware/authenticate');
 
 var app = express();
 const port = process.env.PORT;
@@ -39,7 +41,7 @@ app.get('/todos', (req, res) => {
   });
 });
 
-// GET /todos/12345678
+// Route for getting Todos
 // :id creates a variabile inside req object
 app.get('/todos/:id', (req, res) => {
   // using something off the req
@@ -127,6 +129,10 @@ app.post('/users', (req, res) => {
   });
 });
 
+// private route, needs auth with valid x-auth token
+app.get('/users/me', authenticate, (req, res) => {
+  res.send(req.user);
+});
 
 app.listen(port, () => {
   console.log(`Started up at port ${port}`);  
