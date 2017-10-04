@@ -6,7 +6,7 @@ var authenticate = (req, res, next) => {
 
   // using custom mongoose Schema model method
   // takes token value,find user related to that token returning inside promise callback 
-  User.findByToken(token).then((user) =>{
+  User.findByToken(token).then((user) => {
     if (!user) {
       return Promise.reject();
     }

@@ -1,8 +1,8 @@
 var mongoose = require('mongoose');
 var validator = require('validator');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
-const bcrypt = require('bcryptjs');
 
 // defining Schema for the User model
 var UserSchema = new mongoose.Schema({	
@@ -14,6 +14,7 @@ var UserSchema = new mongoose.Schema({
       unique: true,
       validate: {
       	validator: validator.isEmail,
+      	isAsync: false,
       	message: '{VALUE} is not a valid email'
       }
     },
@@ -34,7 +35,7 @@ var UserSchema = new mongoose.Schema({
     }]	
 });
 
-// converting to Json mongoose Schema
+// converting mongoose Schema to Json 
 UserSchema.methods.toJSON = function() {
 	var user = this;
 	// converting mongoose var into JavaScript regular object
@@ -55,7 +56,7 @@ UserSchema.methods.generateAuthToken = function() {
 	});
 };
 
-// creating custom 
+// creating custom model method 
 UserSchema.statics.findByToken = function(token) {
 	var User = this;
 	var decoded;
@@ -74,6 +75,29 @@ UserSchema.statics.findByToken = function(token) {
 		_id: decoded._id,
 		'tokens.token': token,
 		'tokens.access': 'auth'
+	});
+};
+
+UserSchema.statics.findByCredentials = function(email, password) {
+	var User = this;
+
+	// returning chaining promise from server.js
+	return User.findOne({email}).then((user) => {
+		if (!user) {
+			// rejecting promise from server.js
+			return Promise.reject();
+		}
+
+		return new Promise((resolve, reject) => {
+			// bcrypt.compare password and user.password
+			bcrypt.compare(password, user.password, (err, res) => {
+				if (res) {
+					resolve(user);
+				} else {
+					reject();
+				}
+			});		
+		});
 	});
 };
 
