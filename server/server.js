@@ -149,6 +149,16 @@ app.post('/users/login', (req, res) => {
   });
 });
 
+// Route for deleting token from current logged-in user: must be authenticated, so this is is a private route
+app.delete('/users/me/token', authenticate, (req, res) => {
+  // using instance method from user.js
+  req.user.removeToken(req.token).then(() => {
+    res.status(200).send();
+  }, () => {
+    res.send(400);
+  });
+});
+
 app.listen(port, () => {
   console.log(`Started up at port ${port}`);  
 });
