@@ -19,10 +19,11 @@ app.use(bodyParser.json());
 
 // Configuring Routes
 
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate, (req, res) => {
   // getting data from the client
   var todo = new Todo({
-    text: req.body.text
+    text: req.body.text,
+    _creator: req.user._id
   });
   // saving data to db
   todo.save().then((doc) => {
@@ -33,8 +34,10 @@ app.post('/todos', (req, res) => {
 });
 
 // Returning all todos from db
-app.get('/todos', (req, res) => {
-  Todo.find().then((todos) => {
+app.get('/todos', authenticate, (req, res) => {
+  Todo.find({
+    _creator: req.user._id
+  }).then((todos) => {
     res.send({todos});
   }, (e) => {
     res.status(400).send(e);
@@ -43,8 +46,8 @@ app.get('/todos', (req, res) => {
 
 // Route for getting Todos
 // :id creates a variabile inside req object
-app.get('/todos/:id', (req, res) => {
-  // using something off the req
+app.get('/todos/:id', authenticate, (req, res) => {
+  
   var id = req.params.id;
 
   if (!ObjectID.isValid(id)) {
@@ -52,7 +55,10 @@ app.get('/todos/:id', (req, res) => {
     return res.status(404).send();
   }
 
-  Todo.findById(id).then((todo) => {
+  Todo.findOne({
+    _id: id,
+    _creator: req.user._id
+  }).then((todo) => {
     if (!todo) {
       res.status(404).send();
     }
@@ -63,7 +69,7 @@ app.get('/todos/:id', (req, res) => {
 });
 
 // Route for deleting Todo
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', authenticate, (req, res) => {
   // get the id
   var id = req.params.id; 
 
@@ -72,7 +78,10 @@ app.delete('/todos/:id', (req, res) => {
     return res.status(404).send();    
   }
 
-  Todo.findByIdAndRemove(id).then((todo) => {
+  Todo.findOneAndRemove({
+    _id: id,
+    _creator: req.user._id
+  }).then((todo) => {
     if (!todo) {
       return res.status(404).send();
     }
@@ -84,7 +93,7 @@ app.delete('/todos/:id', (req, res) => {
 });
 
 // Route for updating Todo items
-app.patch('/todos/:id', (req, res) => {
+app.patch('/todos/:id', authenticate, (req, res) => {
   // get the id
   var id = req.params.id;
   // getting the req object with lodash .pick() method: takes an aboject and pulls off properties (if exist) from mongoose model
@@ -103,7 +112,7 @@ app.patch('/todos/:id', (req, res) => {
     }
 
   // updating the db
-  Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+  Todo.findOneAndUpdate({_id: id, _creator: req.user._id}, {$set: body}, {new: true}).then((todo) => {
     if (!todo) {
       return res.status(404).send();
     }
